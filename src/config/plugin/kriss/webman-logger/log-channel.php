@@ -68,5 +68,20 @@ return [
                 'class' => ChannelMixedFormatter::class,
             ],
         ],
+        // 输出到 redis
+        'redis' => [
+            'class' => Kriss\WebmanLogger\Mode\RedisMode::class,
+            'enable' => false,
+            'except_channels' => [],
+            'only_channels' => [],
+            'formatter' => [
+                'class' => ChannelFormatter::class,
+            ],
+            'redis' => function () {
+                return support\Redis::connection('default')->client();
+            },
+            'redis_key_prefix' => 'webmanLog:',
+            'redis_size' => 0,
+        ],
     ],
 ];
