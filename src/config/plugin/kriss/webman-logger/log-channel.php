@@ -40,6 +40,7 @@ return [
             'class' => Kriss\WebmanLogger\Mode\SplitMode::class,
             'enable' => true,
             'except_channels' => [],
+            'only_channels' => [],
             'formatter' => [
                 'class' => ChannelFormatter::class,
             ],
@@ -50,6 +51,7 @@ return [
             'class' => Kriss\WebmanLogger\Mode\MixMode::class,
             'enable' => false,
             'except_channels' => [],
+            'only_channels' => [],
             'formatter' => [
                 'class' => ChannelMixedFormatter::class,
             ],
@@ -61,6 +63,7 @@ return [
             'class' => Kriss\WebmanLogger\Mode\StdoutMode::class,
             'enable' => false,
             'except_channels' => [],
+            'only_channels' => [],
             'formatter' => [
                 'class' => ChannelMixedFormatter::class,
             ],

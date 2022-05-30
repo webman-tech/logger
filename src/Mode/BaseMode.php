@@ -13,7 +13,8 @@ abstract class BaseMode
      */
     protected array $commonConfig = [
         'enable' => false,
-        'except_channels' => [],
+        'except_channels' => [], // 排除部分 channel
+        'only_channels' => [], // 仅包含部分 channel，为空时无效
         'formatter' => [
             'class' => LineFormatter::class,
             'constructor' => [],
@@ -50,6 +51,9 @@ abstract class BaseMode
             return false;
         }
         if (in_array($channelName, $this->commonConfig['except_channels'])) {
+            return false;
+        }
+        if (count($this->commonConfig['only_channels']) > 0 && !in_array($channelName, $this->commonConfig['only_channels'])) {
             return false;
         }
 
