@@ -124,6 +124,12 @@ Logger::app('hello: {name}', 'info', ['name' => 'Kriss']); // 使用 PsrLogMessa
 
 在 log 文件中如何区分 channel？ 在记录的日志中有一列是 [channelName]
 
+#### StdoutMode
+
+将所有日志输出到控制台
+
+此模式适合 docker 环境
+
 ### formatter 介绍
 
 formatter 结构化可以有效的方便日志的筛查和查看

@@ -48,13 +48,22 @@ return [
         // 将所有channel合并到一起记录
         'mix' => [
             'class' => Kriss\WebmanLogger\Mode\MixMode::class,
-            'enable' => true,
+            'enable' => false,
             'except_channels' => [],
             'formatter' => [
                 'class' => ChannelMixedFormatter::class,
             ],
             'max_files' => 30, // 最大文件数
             'name' => 'channelMixed', // 合并时的日志文件名
+        ],
+        // 控制台输出
+        'stdout' => [
+            'class' => Kriss\WebmanLogger\Mode\StdoutMode::class,
+            'enable' => false,
+            'except_channels' => [],
+            'formatter' => [
+                'class' => ChannelMixedFormatter::class,
+            ],
         ],
     ],
 ];
