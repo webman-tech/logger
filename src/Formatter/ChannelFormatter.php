@@ -10,6 +10,6 @@ class ChannelFormatter extends LineFormatter
     {
         $format = $format ?? "[%datetime%][%extra.uid%]{$channel}[%level_name%][%context.ip%][%context.userId%][%context.route%]: %message%\n";
 
-        parent::__construct($format, 'Y-m-d H:i:s', true, true, true);
+        parent::__construct($format, 'Y-m-d H:i:s.u', true, true, true);
     }
 }
