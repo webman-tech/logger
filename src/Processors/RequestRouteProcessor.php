@@ -14,7 +14,7 @@ class RequestRouteProcessor implements ProcessorInterface
         if (!isset($record['context']['route'])) {
             $path = '/';
             if ($request = request()) {
-                $path = $request->path();
+                $path = $request->method() . ':' . $request->path();
             }
             $record['context']['route'] = $path;
         }
