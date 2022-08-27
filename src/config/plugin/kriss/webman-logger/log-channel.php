@@ -24,7 +24,7 @@ return [
     // processors
     'processors' => function () {
         return [
-            new PsrLogMessageProcessor('Y-m-d H:i:s'),
+            new PsrLogMessageProcessor('Y-m-d H:i:s', true),
             new RequestRouteProcessor(),
             new CurrentUserProcessor(function () {
                 // 返回当前用户id
