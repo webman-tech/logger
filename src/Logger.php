@@ -19,7 +19,7 @@ class Logger
      */
     public static function getLogChannelConfigs(): array
     {
-        $logChannelManager = new LogChannelManager(config('plugin.kriss.webman-logger.log-channel'));
+        $logChannelManager = new LogChannelManager(config('plugin.webman-tech.logger.log-channel'));
         return $logChannelManager->buildLogChannelConfigs();
     }
 
@@ -31,7 +31,7 @@ class Logger
             $logChannel = Log::channel($name);
         } catch (Throwable $e) {
             if ($e->getMessage() === 'Undefined index: ' . $name) {
-                if (!in_array($name, config('plugin.kriss.webman-logger.log-channel.channels', []))) {
+                if (!in_array($name, config('plugin.webman-tech.logger.log-channel.channels', []))) {
                     // 未在 channels 中配置的
                     throw new InvalidArgumentException('请先在 config/plugin/webman-tech/logger/log-channel.php 配置中配置 channels');
                 }
