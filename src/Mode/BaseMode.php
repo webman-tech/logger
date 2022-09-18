@@ -11,7 +11,7 @@ abstract class BaseMode
      * 通用配置
      * @var array
      */
-    protected array $commonConfig = [
+    protected $commonConfig = [
         'enable' => false,
         'except_channels' => [], // 排除部分 channel
         'only_channels' => [], // 仅包含部分 channel，为空时无效
@@ -24,7 +24,7 @@ abstract class BaseMode
      * 模式配置
      * @var array
      */
-    protected array $config = [];
+    protected $config = [];
 
     final public function __construct(array $config = [])
     {

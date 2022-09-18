@@ -6,7 +6,10 @@ use Monolog\Handler\RotatingFileHandler;
 
 class SplitMode extends BaseMode
 {
-    protected array $config = [
+    /**
+     * @var array
+     */
+    protected $config = [
         'max_files' => 30,
     ];
 

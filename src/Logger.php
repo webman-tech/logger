@@ -8,7 +8,10 @@ use Throwable;
 
 class Logger
 {
-    protected static string $defaultLevel = 'info';
+    /**
+     * @var string
+     */
+    protected static $defaultLevel = 'info';
 
     /**
      * 合并到 config/log.php 中的配置

@@ -4,7 +4,7 @@
   "license": "MIT",
   "description": "webman logger plugin",
   "require": {
-    "php": ">=7.4",
+    "php": ">=7.2",
     "monolog/monolog": "^2.6"
   },
   "require-dev": {

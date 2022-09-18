@@ -7,7 +7,10 @@ use Monolog\Handler\RedisHandler;
 
 class RedisMode extends BaseMode
 {
-    protected array $config = [
+    /**
+     * @var array
+     */
+    protected $config = [
         'redis' => null,
         'redis_key_prefix' => 'webmanLog:',
         'redis_size' => 0,

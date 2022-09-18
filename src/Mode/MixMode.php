@@ -6,7 +6,10 @@ use Monolog\Handler\RotatingFileHandler;
 
 class MixMode extends BaseMode
 {
-    protected array $config = [
+    /**
+     * @var array
+     */
+    protected $config = [
         'max_files' => 30,
         'name' => 'channelMixed', // 合并时的日志文件名
     ];

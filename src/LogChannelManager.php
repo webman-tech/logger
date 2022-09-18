@@ -8,7 +8,10 @@ use Monolog\Processor\ProcessorInterface;
 
 class LogChannelManager
 {
-    protected array $config = [
+    /**
+     * @var array
+     */
+    protected $config = [
         'channels' => [],
         'modes' => [],
         'levels' => [
