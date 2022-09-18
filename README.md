@@ -15,7 +15,9 @@ webman 支持原始的 monolog 配置形式，配置灵活，但是从以下情�
 
 ## 安装
 
+```bash
 composer require webman-tech/logger
+```
 
 ## 配置
 
