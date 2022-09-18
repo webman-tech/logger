@@ -1,6 +1,6 @@
 <?php
 
-namespace Kriss\WebmanLogger\Formatter;
+namespace WebmanTech\Logger\Formatter;
 
 class ChannelMixedFormatter extends ChannelFormatter
 {

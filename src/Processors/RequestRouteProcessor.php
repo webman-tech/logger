@@ -1,6 +1,6 @@
 <?php
 
-namespace Kriss\WebmanLogger\Processors;
+namespace WebmanTech\Logger\Processors;
 
 use Monolog\Processor\ProcessorInterface;
 

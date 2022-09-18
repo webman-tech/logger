@@ -1,6 +1,6 @@
 <?php
 
-namespace Kriss\WebmanLogger\Middleware;
+namespace WebmanTech\Logger\Middleware;
 
 use Webman\Http\Request;
 use Webman\Http\Response;

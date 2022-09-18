@@ -1,5 +1,5 @@
 {
-  "name": "kriss/webman-logger",
+  "name": "webman-tech/logger",
   "type": "library",
   "license": "MIT",
   "description": "webman logger plugin",
@@ -12,7 +12,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Kriss\\WebmanLogger\\": "src"
+      "WebmanTech\\Logger\\": "src"
     }
   }
 }

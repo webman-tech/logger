@@ -1,13 +1,13 @@
 <?php
 
-namespace Kriss\WebmanLogger\Processors;
+namespace WebmanTech\Logger\Processors;
 
-use Kriss\WebmanLogger\Middleware\RequestUid;
+use WebmanTech\Logger\Middleware\RequestUid;
 use Monolog\Processor\UidProcessor;
 
 /**
  * 网站请求唯一标识记录，需要配合 Middleware\RequestUid
- * @see \Kriss\WebmanLogger\Middleware\RequestUid
+ * @see \WebmanTech\Logger\Middleware\RequestUid
  */
 class RequestUidProcessor extends UidProcessor
 {

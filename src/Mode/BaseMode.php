@@ -1,6 +1,6 @@
 <?php
 
-namespace Kriss\WebmanLogger\Mode;
+namespace WebmanTech\Logger\Mode;
 
 use InvalidArgumentException;
 use Monolog\Formatter\LineFormatter;

@@ -1,9 +1,9 @@
 <?php
 
-namespace Kriss\WebmanLogger;
+namespace WebmanTech\Logger;
 
 use InvalidArgumentException;
-use Kriss\WebmanLogger\Mode\BaseMode;
+use WebmanTech\Logger\Mode\BaseMode;
 use Monolog\Processor\ProcessorInterface;
 
 class LogChannelManager

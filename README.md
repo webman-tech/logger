@@ -1,4 +1,4 @@
-# kriss/webman-logger
+# webman-tech/logger
 
 webman log 统筹化管理插件
 
@@ -15,13 +15,13 @@ webman 支持原始的 monolog 配置形式，配置灵活，但是从以下情�
 
 ## 安装
 
-composer require kriss/webman-logger
+composer require webman-tech/logger
 
 ## 配置
 
-1. 主要的配置文件位于：`config/plugin/kriss/webman-logger/log-channel.php`，按需调整，后文详细对其中部分配置做说明
+1. 主要的配置文件位于：`config/plugin/webman-tech/logger/log-channel.php`，按需调整，后文详细对其中部分配置做说明
 
-2. （建议）自定义一个 Logger 类继承 `Kriss\WebmanLogger\Logger`，比如 `support\facade\Logger`，便于后期扩展和使用
+2. （建议）自定义一个 Logger 类继承 `WebmanTech\Logger\Logger`，比如 `support\facade\Logger`，便于后期扩展和使用
 
 3. （必须）在 `config/log.php` 中合并原来的配置和 `Logger::getLogChannelConfigs()`，例如：
 
@@ -53,7 +53,7 @@ return array_merge(
 
 4. 新增一个日志 channel，执行以下两步操作：
 
-   1. （必须）在 `config/plugin/kriss/webman-logger/log-channel.php` 的 `channels` 中添加日志 channel 的名字，建议小驼峰命名，例如 `purchaseOrder`
+   1. （必须）在 `config/plugin/webman-tech/logger/log-channel.php` 的 `channels` 中添加日志 channel 的名字，建议小驼峰命名，例如 `purchaseOrder`
    2. （建议）在 `support\facade\Logger` 的类上方添加注释：`@method static void purchaseOrder($msg, string $type = 'info', array $context = [])`
 
 步骤2是为了代码提示，后期记录日志可以直接使用 `support\facade\Logger::purchaseOrder('xxx')` 的形式，
@@ -63,7 +63,7 @@ return array_merge(
 
 ## 使用
 
-假设已经在 `config/plugin/kriss/webman-logger/log-channel.php` 的 `channels` 中配置了两个 channels: app 和 sql，建议有如下 Logger 类：
+假设已经在 `config/plugin/webman-tech/logger/log-channel.php` 的 `channels` 中配置了两个 channels: app 和 sql，建议有如下 Logger 类：
 
 ```php
 <?php
@@ -74,7 +74,7 @@ namespace support\facade;
  * @method static void app($msg, string $type = 'info', array $context = [])
  * @method static void sql($msg, string $type = 'info', array $context = [])
  */
-class Logger extends \Kriss\WebmanLogger\Logger
+class Logger extends \WebmanTech\Logger\Logger
 {
 }
 ```

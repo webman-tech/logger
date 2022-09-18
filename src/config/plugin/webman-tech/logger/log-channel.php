@@ -1,10 +1,10 @@
 <?php
 
-use Kriss\WebmanLogger\Formatter\ChannelFormatter;
-use Kriss\WebmanLogger\Formatter\ChannelMixedFormatter;
-use Kriss\WebmanLogger\Processors\RequestRouteProcessor;
-use Kriss\WebmanLogger\Processors\RequestUidProcessor;
-use Kriss\WebmanLogger\Processors\CurrentUserProcessor;
+use WebmanTech\Logger\Formatter\ChannelFormatter;
+use WebmanTech\Logger\Formatter\ChannelMixedFormatter;
+use WebmanTech\Logger\Processors\RequestRouteProcessor;
+use WebmanTech\Logger\Processors\RequestUidProcessor;
+use WebmanTech\Logger\Processors\CurrentUserProcessor;
 use Monolog\Processor\PsrLogMessageProcessor;
 
 return [
@@ -37,7 +37,7 @@ return [
     'modes' => [
         // 按照channel分目录记录
         'split' => [
-            'class' => Kriss\WebmanLogger\Mode\SplitMode::class,
+            'class' => WebmanTech\Logger\Mode\SplitMode::class,
             'enable' => true,
             'except_channels' => [],
             'only_channels' => [],
@@ -48,7 +48,7 @@ return [
         ],
         // 将所有channel合并到一起记录
         'mix' => [
-            'class' => Kriss\WebmanLogger\Mode\MixMode::class,
+            'class' => WebmanTech\Logger\Mode\MixMode::class,
             'enable' => false,
             'except_channels' => [],
             'only_channels' => [],
@@ -60,7 +60,7 @@ return [
         ],
         // 控制台输出
         'stdout' => [
-            'class' => Kriss\WebmanLogger\Mode\StdoutMode::class,
+            'class' => WebmanTech\Logger\Mode\StdoutMode::class,
             'enable' => false,
             'except_channels' => [],
             'only_channels' => [],
@@ -70,7 +70,7 @@ return [
         ],
         // 输出到 redis
         'redis' => [
-            'class' => Kriss\WebmanLogger\Mode\RedisMode::class,
+            'class' => WebmanTech\Logger\Mode\RedisMode::class,
             'enable' => false,
             'except_channels' => [],
             'only_channels' => [],

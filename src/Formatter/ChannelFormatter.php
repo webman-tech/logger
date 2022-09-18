@@ -1,6 +1,6 @@
 <?php
 
-namespace Kriss\WebmanLogger\Formatter;
+namespace WebmanTech\Logger\Formatter;
 
 use Monolog\Formatter\LineFormatter;
 
