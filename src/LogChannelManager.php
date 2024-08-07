@@ -52,7 +52,10 @@ class LogChannelManager
         return $channelConfigs;
     }
 
-    private array $_modes = [];
+    /**
+     * @var array
+     */
+    private $_modes = [];
 
     /**
      * @param array $mode
