@@ -20,7 +20,7 @@ class Logger
      */
     public static function getLogChannelConfigs(): array
     {
-        $logChannelManager = new LogChannelManager(ConfigHelper::get('log-channel'));
+        $logChannelManager = new LogChannelManager((array)ConfigHelper::get('log-channel'));
         return $logChannelManager->buildLogChannelConfigs();
     }
 
@@ -32,7 +32,7 @@ class Logger
             $logChannel = Log::channel($name);
         } catch (Throwable $e) {
             if ($e->getMessage() === 'Undefined index: ' . $name) {
-                if (!in_array($name, ConfigHelper::get('log-channel.channels', []))) {
+                if (!in_array($name, (array)ConfigHelper::get('log-channel.channels', []))) {
                     // 未在 channels 中配置的
                     throw new InvalidArgumentException('请先在 log-channel.php 配置中配置 channels');
                 }
@@ -54,7 +54,7 @@ class Logger
         if (is_array($message)) {
             $message = json_encode($message, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
-
+        /** @phpstan-ignore-next-line */
         return $message;
     }
 }
