@@ -5,6 +5,7 @@ namespace WebmanTech\Logger;
 use InvalidArgumentException;
 use support\Log;
 use Throwable;
+use WebmanTech\Logger\Helper\ConfigHelper;
 
 class Logger
 {
@@ -19,7 +20,7 @@ class Logger
      */
     public static function getLogChannelConfigs(): array
     {
-        $logChannelManager = new LogChannelManager(config('plugin.webman-tech.logger.log-channel'));
+        $logChannelManager = new LogChannelManager(ConfigHelper::get('log-channel'));
         return $logChannelManager->buildLogChannelConfigs();
     }
 
@@ -31,9 +32,9 @@ class Logger
             $logChannel = Log::channel($name);
         } catch (Throwable $e) {
             if ($e->getMessage() === 'Undefined index: ' . $name) {
-                if (!in_array($name, config('plugin.webman-tech.logger.log-channel.channels', []))) {
+                if (!in_array($name, ConfigHelper::get('log-channel.channels', []))) {
                     // 未在 channels 中配置的
-                    throw new InvalidArgumentException('请先在 config/plugin/webman-tech/logger/log-channel.php 配置中配置 channels');
+                    throw new InvalidArgumentException('请先在 log-channel.php 配置中配置 channels');
                 }
                 // 在 channels 中配置了，但所有 handler 都关闭的情况
                 return;
