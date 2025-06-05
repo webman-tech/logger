@@ -71,7 +71,7 @@ abstract class BaseMode
         if (!isset($formatter['class'])) {
             throw new InvalidArgumentException('formatter 必须 class 参数');
         }
-        $formatter['constructor'] = $formatter['constructor'] ?? [];
+        $formatter['constructor'] ??= [];
         return $formatter;
     }
 }
