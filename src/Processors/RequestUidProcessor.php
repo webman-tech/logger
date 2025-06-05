@@ -25,6 +25,7 @@ class RequestUidProcessor extends UidProcessor
         if (!isset($record->extra['uid'])) {
             $uid = null;
             if ($request = request()) {
+                /* @phpstan-ignore-next-line */
                 $uid = $request->{RequestUid::REQUEST_UID_KEY};
             }
 
