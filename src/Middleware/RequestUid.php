@@ -27,6 +27,7 @@ class RequestUid implements MiddlewareInterface
     public function generateUid(): string
     {
         $length = 7;
+        /** @phpstan-ignore-next-line */
         return substr(bin2hex(random_bytes((int)ceil($length / 2))), 0, $length);
     }
 }
