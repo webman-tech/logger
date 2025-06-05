@@ -8,7 +8,7 @@ class ChannelFormatter extends LineFormatter
 {
     public function __construct(string $channel = '')
     {
-        $format = $format ?? "[%datetime%][%extra.uid%]{$channel}[%level_name%][%extra.ip%][%extra.userId%][%extra.route%]: %message% %context% %extra%\n";
+        $format = "[%datetime%][%extra.uid%]{$channel}[%level_name%][%extra.ip%][%extra.userId%][%extra.route%]: %message% %context% %extra%\n";
 
         parent::__construct($format, 'Y-m-d H:i:s.u', true, true, true);
     }
