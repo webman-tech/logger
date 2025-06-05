@@ -24,7 +24,7 @@ class Logger
         return $logChannelManager->buildLogChannelConfigs();
     }
 
-    public static function __callStatic($name, $arguments)
+    public static function __callStatic(string $name, array $arguments): void
     {
         $level = $arguments[1] ?? static::$defaultLevel;
         $context = $arguments[2] ?? [];
@@ -46,7 +46,7 @@ class Logger
 
     /**
      * 格式化日志信息
-     * @param $message
+     * @param string|array|mixed $message
      * @return string|\Stringable
      */
     protected static function formatMessage($message)

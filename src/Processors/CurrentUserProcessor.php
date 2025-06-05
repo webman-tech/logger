@@ -7,11 +7,8 @@ use Monolog\Processor\ProcessorInterface;
 
 class CurrentUserProcessor implements ProcessorInterface
 {
-    protected $getUserId = null;
-
-    public function __construct(callable $getUserId = null)
+    public function __construct(protected \Closure|null $getUserId = null)
     {
-        $this->getUserId = $getUserId;
     }
 
     /**
