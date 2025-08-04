@@ -5,6 +5,7 @@ namespace WebmanTech\Logger;
 use InvalidArgumentException;
 use support\Log;
 use Throwable;
+use WeakMap;
 use WebmanTech\Logger\Helper\ConfigHelper;
 
 class Logger
@@ -24,12 +25,28 @@ class Logger
         return $logChannelManager->buildLogChannelConfigs();
     }
 
+    /**
+     * 记录在用的 Logger 实例，后续用于释放资源
+     * @var null|WeakMap<\Monolog\Logger, string>
+     */
+    private static ?WeakMap $loggerInstances = null;
+
     public static function __callStatic(string $name, array $arguments): void
     {
         $level = $arguments[1] ?? static::$defaultLevel;
         $context = $arguments[2] ?? [];
+
+        if (self::$loggerInstances === null) {
+            self::$loggerInstances = new WeakMap();
+        }
+
         try {
-            $logChannel = Log::channel($name);
+            $channelLogger = Log::channel($name);
+
+            if (!isset(self::$loggerInstances[$channelLogger])) {
+                /** @phpstan-ignore-next-line */
+                self::$loggerInstances[$channelLogger] = $name;
+            }
         } catch (Throwable $e) {
             if ($e->getMessage() === 'Undefined index: ' . $name) {
                 if (!in_array($name, (array)ConfigHelper::get('log-channel.channels', []))) {
@@ -41,7 +58,51 @@ class Logger
             }
             throw $e;
         }
-        $logChannel->log($level, static::formatMessage($arguments[0]), (array)$context);
+        $channelLogger->log($level, static::formatMessage($arguments[0]), (array)$context);
+    }
+
+    /**
+     * 重置，比如 flush message
+     */
+    public static function reset(?string $name = null): void
+    {
+        if (self::$loggerInstances === null) {
+            return;
+        }
+
+        foreach (self::$loggerInstances as $logger => $channelName) {
+            if ($name) {
+                if ($name === $channelName) {
+                    $logger->reset();
+                    break;
+                }
+                continue;
+            }
+            // 不指定 name 时全部都释放一遍
+            $logger->reset();
+        }
+    }
+
+    /**
+     * 关闭，比如 关闭文件句柄 占用
+     */
+    public static function close(?string $name = null): void
+    {
+        if (self::$loggerInstances === null) {
+            return;
+        }
+
+        foreach (self::$loggerInstances as $logger => $channelName) {
+            if ($name) {
+                if ($name === $channelName) {
+                    $logger->close();
+                    break;
+                }
+                continue;
+            }
+            // 不指定 name 时全部都释放一遍
+            $logger->close();
+        }
     }
 
     /**
