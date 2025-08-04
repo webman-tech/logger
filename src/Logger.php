@@ -3,6 +3,7 @@
 namespace WebmanTech\Logger;
 
 use InvalidArgumentException;
+use Monolog\Utils;
 use support\Log;
 use Throwable;
 use WeakMap;
@@ -113,7 +114,7 @@ class Logger
     protected static function formatMessage($message)
     {
         if (is_array($message)) {
-            $message = json_encode($message, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $message = Utils::jsonEncode($message);
         }
         /** @phpstan-ignore-next-line */
         return $message;
