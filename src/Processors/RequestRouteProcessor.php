@@ -10,15 +10,20 @@ class RequestRouteProcessor implements ProcessorInterface
     /**
      * @inheritDoc
      */
-    public function __invoke(LogRecord $record): LogRecord
+    public function __invoke(array|LogRecord $record): array|LogRecord
     {
-        if (!isset($record->extra['route'])) {
+        $extra = $record['extra'] ?? [];
+
+        if (!isset($extra['route'])) {
             $path = '/';
             if ($request = request()) {
                 $path = $request->method() . ':' . $request->path();
             }
-            $record->extra['route'] = $path;
+            $extra['route'] = $path;
         }
+
+        $record['extra'] = $extra;
+
         return $record;
     }
 }

@@ -14,19 +14,24 @@ class CurrentUserProcessor implements ProcessorInterface
     /**
      * @inheritDoc
      */
-    public function __invoke(LogRecord $record): LogRecord
+    public function __invoke(array|LogRecord $record): array|LogRecord
     {
-        if (!isset($record->extra['ip'])) {
+        $extra = $record['extra'] ?? [];
+
+        if (!isset($extra['ip'])) {
             $ip = '0.0.0.0';
             if ($request = request()) {
                 $ip = $request->getRealIp();
             }
-            $record->extra['ip'] = $ip;
+            $extra['ip'] = $ip;
         }
-        if (!isset($record->extra['userId']) && $this->getUserId) {
+        if (!isset($extra['userId']) && $this->getUserId) {
             $userId = call_user_func($this->getUserId);
-            $record->extra['userId'] = $userId;
+            $extra['userId'] = $userId;
         }
+
+        $record['extra'] = $extra;
+
         return $record;
     }
 }
