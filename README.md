@@ -1,19 +1,28 @@
 # webman-tech/logger
 
-本项目是从 [webman-tech/components-monorepo](https://github.com/orgs/webman-tech/components-monorepo) 自动 split 出来的，请勿直接修改
+本项目是从 [webman-tech/components-monorepo](https://github.com/orgs/webman-tech/components-monorepo) 自动 split
+出来的，请勿直接修改
 
-> 简介
+## 简介
 
-webman log 统筹化管理插件
+webman 日志统筹化管理插件，基于 Monolog 实现，旨在解决 webman 原生日志配置的一些不便之处：
 
-webman 支持原始的 monolog 配置形式，配置灵活，但是从以下情况来看不是特别便利：
+1. 当日志量较大时，不可能所有日志都通过 `Log::info` 的形式记录，需要分 channel 管理
+2. 当 channel 数量较多时，每个都需要单独定义，基本上是复制粘贴操作，后期如果需要切换所有通道的写入方式，需要逐一修改，维护困难
+3. 每次通过 `Log::channel('channelName')` 的形式调用时，由于 `channelName` 是字符串，容易拼写错误导致日志记录失败
+4. 没有充分利用 Monolog 的 formatter 和 processor 功能
 
-1. 当日志特别多，不可能所有日志都通过 `Log::info` 的形式去记录，肯定是需要分 channel 的
-2. 当 channel 特别多的时候：每个都要去单独定义，但基本都是复制粘贴的，当后期切换所有通道写入渠道时，需要逐一修改，不太好维护
-3. 每次通过 `Log::channel('channelName')` 的形式去调用，因为 `channelName` 是字符串，万一单词拼错，会导致日志记录不到
-4. 没有很好的利用好 monolog 的 formatter 和 processor
+本插件正是为了解决以上问题，针对多 `channel` 模式进行统筹优化管理。
 
-此插件即为了解决以上问题，针对多 `channel` 模式进行统筹优化管理
+## 功能特性
+
+- **多通道管理**：统一管理多个日志通道，避免重复配置
+- **模式化处理**：支持多种日志处理模式（Split、Mix、Stdout、Redis等）
+- **格式化支持**：提供结构化的日志格式化器
+- **处理器机制**：支持多种日志处理器，丰富日志内容
+- **类型安全**：通过继承 Logger 类提供方法提示，避免拼写错误
+- **灵活配置**：支持全局和通道级别的灵活配置
+- **性能优化**：使用 WeakMap 管理 Logger 实例，支持资源释放
 
 ## 安装
 
@@ -21,53 +30,36 @@ webman 支持原始的 monolog 配置形式，配置灵活，但是从以下情�
 composer require webman-tech/logger
 ```
 
-## 配置
+## 快速开始
 
-1. 主要的配置文件位于：`config/plugin/webman-tech/logger/log-channel.php`，按需调整，后文详细对其中部分配置做说明
+### 基本配置
 
-2. （建议）自定义一个 Logger 类继承 `WebmanTech\Logger\Logger`，比如 `support\facade\Logger`，便于后期扩展和使用
+1. 在 `config/plugin/webman-tech/logger/log-channel.php` 中配置日志通道：
 
-3. （必须）在 `config/log.php` 中合并原来的配置和 `Logger::getLogChannelConfigs()`，例如：
+```php
+return [
+    'channels' => [
+        'app',
+        'sql',
+        'business',
+    ],
+];
+```
+
+2. 在 `config/log.php` 中合并配置：
 
 ```php
 use support\facade\Logger;
 
 return array_merge(
     [
-        'default' => [
-            'handlers' => [
-                [
-                    'class' => Monolog\Handler\RotatingFileHandler::class,
-                    'constructor' => [
-                        runtime_path() . '/logs/webman.log',
-                        7, //$maxFiles
-                        Monolog\Logger::DEBUG,
-                    ],
-                    'formatter' => [
-                        'class' => Monolog\Formatter\LineFormatter::class,
-                        'constructor' => [null, 'Y-m-d H:i:s', true],
-                    ],
-                ]
-            ],
-        ],
+        // 原有配置
     ],
-    Logger::getLogChannelConfigs(), // merge 这个
+    Logger::getLogChannelConfigs()
 );
 ```
 
-4. 新增一个日志 channel，执行以下两步操作：
-
-   1. （必须）在 `config/plugin/webman-tech/logger/log-channel.php` 的 `channels` 中添加日志 channel 的名字，建议小驼峰命名，例如 `purchaseOrder`
-   2. （建议）在 `support\facade\Logger` 的类上方添加注释：`@method static void purchaseOrder($msg, string $type = 'info', array $context = [])`
-
-步骤2是为了代码提示，后期记录日志可以直接使用 `support\facade\Logger::purchaseOrder('xxx')` 的形式，
-如果未定义该类，一样可以使用 `support\Log::channel('purchaseOrder')->info('xxx')` 的方式去记录日志
-
-后期新增其他 channel，只需要重复4即可
-
-## 使用
-
-假设已经在 `config/plugin/webman-tech/logger/log-channel.php` 的 `channels` 中配置了两个 channels: app 和 sql，建议有如下 Logger 类：
+3. 创建自定义 Logger 类（可选但推荐）：
 
 ```php
 <?php
@@ -77,79 +69,263 @@ namespace support\facade;
 /**
  * @method static void app($msg, string $type = 'info', array $context = [])
  * @method static void sql($msg, string $type = 'info', array $context = [])
+ * @method static void business($msg, string $type = 'info', array $context = [])
  */
 class Logger extends \WebmanTech\Logger\Logger
 {
 }
 ```
 
-### 记录日志
+### 基本使用
 
 ```php
 use support\facade\Logger;
 
-Logger::app('xxx'); // 记录 xxx 到 app channel
-Logger::app(['x' => 'y']); // 支持数组写入，写入日志时会转成 json
-Logger::app($exception); // 支持 Exception 写入，写入时会记录详细的 trace
-Logger::app('xxx', 'error'); // 切换 level
-Logger::app('hello: {name}', 'info', ['name' => 'Kriss']); // 使用 PsrLogMessageProcessor 处理，会记录成 "hello Kriss"
+// 记录日志到 app 通道
+Logger::app('这是一条应用日志');
+
+// 记录不同级别的日志
+Logger::app('这是一条错误日志', 'error');
+
+// 记录数组数据
+Logger::app(['user_id' => 123, 'action' => 'login']);
+
+// 记录异常
+Logger::app($exception);
+
+// 使用上下文
+Logger::app('用户 {name} 执行了 {action}', 'info', ['name' => '张三', 'action' => '登录']);
 ```
 
-### 模式(Mode)介绍
+## 核心组件
 
-模式基本等同于 monolog 的 Handler，基本来说就是 Handler 的二次封装，多个模式可以同时启用，以下时已有的模式介绍
+### Logger 主类
 
-#### SplitMode
+[Logger](src/Logger.php) 类是主要入口，提供静态方法调用各日志通道：
 
-不同的channel分别会被记录到不同的目录下，目录名和文件名均为 channel 同名，如：
+- `__callStatic()`: 魔术方法，用于调用各通道日志方法
+- `getLogChannelConfigs()`: 获取日志通道配置
+- `reset()`: 重置 Logger 实例
+- `close()`: 关闭 Logger 实例，释放资源
 
-- runtime
-  - logs
-    - app
-      - app-2022-05-28.log
-      - app-2022-05-29.log
-    - sql
-      - sql-2022-05-28.log
-      - sql-2022-05-29.log
+### LogChannelManager
 
-此模式比较适合开发和测试，按channel和日期分开日志，方便排查错误
+[LogChannelManager](src/LogChannelManager.php) 负责管理日志通道配置：
 
-#### MixMode
+- 构建适用于 config/log.php 的通道配置
+- 管理日志模式和处理器
+- 处理不同通道的日志级别
 
-不同的channel会被记录到同一个目录下，目录名和文件名均为 channelMixed(可修改)，如：
+### 模式(Mode)
 
-- runtime
-    - logs
-        - channelMixed
-            - channelMixed-2022-05-28.log
-            - channelMixed-2022-05-29.log
+模式基本等同于 Monolog 的 Handler，是对 Handler 的二次封装。
 
-此模式比较适合将日志文件写入到 elk 等其他集中日志管理的服务中，因为一般此种通过 agent 来收集日志的服务不太会兼容动态扩展的日志目录
+#### BaseMode 基础模式
 
-在 log 文件中如何区分 channel？ 在记录的日志中有一列是 [channelName]
+[BaseMode](src/Mode/BaseMode.php) 是所有模式的基类，提供通用配置和方法：
 
-#### StdoutMode
+- 通用配置：enable、except_channels、only_channels、formatter
+- 检查通道是否启用
+- 获取格式化器
 
-将所有日志输出到控制台
+#### SplitMode 分离模式
 
-此模式适合 docker 环境
+[SplitMode](src/Mode/SplitMode.php) 将不同的日志通道记录到不同的目录下：
 
-### formatter 介绍
+```
+runtime/
+└── logs/
+    ├── app/
+    │   ├── app-2023-01-01.log
+    │   └── app-2023-01-02.log
+    └── sql/
+        ├── sql-2023-01-01.log
+        └── sql-2023-01-02.log
+```
 
-formatter 结构化可以有效的方便日志的筛查和查看
+适用于开发和测试环境，便于按通道和日期排查错误。
 
-#### ChannelFormatter
+#### MixMode 混合模式
 
-基本的通道格式
+[MixMode](src/Mode/MixMode.php) 将所有日志通道记录到同一个目录下：
 
-单行日志格式如下：
+```
+runtime/
+└── logs/
+    └── channelMixed/
+        ├── channelMixed-2023-01-01.log
+        └── channelMixed-2023-01-02.log
+```
 
-`[时间][请求的唯一标识][日志级别][客户端ip][当前登录的用户ID][路由path]: 日志内容`
+适用于将日志写入 ELK 等集中日志管理系统。
 
-#### ChannelMixedFormatter
+#### StdoutMode 标准输出模式
 
-mix mode 使用的格式，比 ChannelFormatter 多了一列 channelName
+[StdoutMode](src/Mode/StdoutMode.php) 将日志输出到控制台，适用于 Docker 环境。
 
-单行日志格式如下：
+#### RedisMode Redis 模式
 
-`[时间][请求的唯一标识][channelName][日志级别][客户端ip][当前登录的用户ID][路由path]: 日志内容`
+[RedisMode](src/Mode/RedisMode.php) 将日志写入 Redis，适用于需要进一步处理日志的场景。
+
+### 格式化器(Formatter)
+
+格式化器用于结构化日志格式，方便日志的筛查和查看。
+
+#### ChannelFormatter 通道格式化器
+
+[ChannelFormatter](src/Formatter/ChannelFormatter.php) 提供基本的通道格式：
+
+```
+[时间][请求唯一标识][日志级别][客户端IP][用户ID][路由]: 日志内容
+```
+
+#### ChannelMixedFormatter 混合格式化器
+
+[ChannelMixedFormatter](src/Formatter/ChannelMixedFormatter.php) 在 ChannelFormatter 基础上增加通道名：
+
+```
+[时间][请求唯一标识][通道名][日志级别][客户端IP][用户ID][路由]: 日志内容
+```
+
+### 处理器(Processors)
+
+处理器用于在日志记录时向日志中添加额外信息。
+
+#### CurrentUserProcessor 当前用户处理器
+
+[CurrentUserProcessor](src/Processors/CurrentUserProcessor.php) 添加当前用户信息（IP地址和用户ID）。
+
+#### RequestRouteProcessor 请求路由处理器
+
+[RequestRouteProcessor](src/Processors/RequestRouteProcessor.php) 添加当前请求路由信息。
+
+#### RequestUidProcessor 请求UID处理器
+
+[RequestUidProcessor](src/Processors/RequestUidProcessor.php) 添加请求唯一标识，需要配合 RequestUid 中间件使用。
+
+## 配置说明
+
+### 主要配置项
+
+在 `config/plugin/webman-tech/logger/log-channel.php` 中配置：
+
+```php
+return [
+    'channels' => [
+        // 日志通道列表
+        'app',
+        'sql',
+        'business',
+    ],
+    'modes' => [
+        // 日志模式配置
+        [
+            'class' => \WebmanTech\Logger\Mode\SplitMode::class,
+            'enable' => true,
+            'max_files' => 30,
+        ],
+    ],
+    'levels' => [
+        // 日志级别配置
+        'default' => 'info',
+        'special' => [
+            'sql' => 'debug',
+        ],
+    ],
+    'processors' => [
+        // 处理器配置
+        new \WebmanTech\Logger\Processors\RequestUidProcessor(),
+        new \WebmanTech\Logger\Processors\CurrentUserProcessor(),
+        new \WebmanTech\Logger\Processors\RequestRouteProcessor(),
+    ],
+];
+```
+
+### 配置层级
+
+- **全局配置**：在 `config/plugin/webman-tech/logger/log-channel.php` 中定义
+- **通道级别配置**：通过 `levels.special` 为特定通道设置不同日志级别
+
+## 高级用法
+
+### 自定义模式
+
+通过继承 [BaseMode](src/Mode/BaseMode.php) 创建自定义日志模式：
+
+```php
+use WebmanTech\Logger\Mode\BaseMode;
+
+class CustomMode extends BaseMode
+{
+    public function getHandler(string $channelName, string $level): array
+    {
+        if (!$this->checkHandlerUsefulForChannel($channelName)) {
+            return [];
+        }
+
+        return [
+            'class' => YourHandler::class,
+            'constructor' => [
+                // 配置参数
+            ],
+            'formatter' => $this->getFormatter(),
+        ];
+    }
+}
+```
+
+### 自定义格式化器
+
+创建自定义格式化器满足特定的日志格式需求：
+
+```php
+use Monolog\Formatter\LineFormatter;
+
+class CustomFormatter extends LineFormatter
+{
+    public function __construct()
+    {
+        $format = "[%datetime%][%channel%][%level_name%]: %message%\n";
+        parent::__construct($format);
+    }
+}
+```
+
+### 动态调整日志级别
+
+通过配置 `levels` 选项为不同通道设置不同的日志级别：
+
+```php
+'levels' => [
+    'default' => 'info',           // 默认日志级别
+    'special' => [
+        'sql' => 'debug',          // SQL 通道使用 debug 级别
+        'business' => 'warning',   // 业务通道使用 warning 级别
+    ],
+],
+```
+
+### 处理器配置
+
+通过 `processors` 配置添加自定义处理器：
+
+```php
+'processors' => function() {
+    return [
+        new \WebmanTech\Logger\Processors\RequestUidProcessor(),
+        new \WebmanTech\Logger\Processors\CurrentUserProcessor(function() {
+            // 获取当前用户ID的逻辑
+            return Auth::id();
+        }),
+    ];
+},
+```
+
+## 最佳实践
+
+1. **合理规划日志通道**：根据业务模块或功能划分日志通道
+2. **选择合适的模式**：开发环境使用 SplitMode，生产环境根据需要选择 MixMode 或其他模式
+3. **配置适当的日志级别**：避免记录过多无用的调试信息
+4. **使用结构化日志**：通过格式化器和处理器丰富日志信息
+5. **定期清理日志**：设置合理的日志保留天数
+6. **监控重要日志**：对错误和警告级别的日志进行监控和告警
