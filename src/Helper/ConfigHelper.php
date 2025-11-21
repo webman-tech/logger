@@ -2,6 +2,8 @@
 
 namespace WebmanTech\Logger\Helper;
 
+use function WebmanTech\CommonUtils\config;
+
 /**
  * @internal
  */

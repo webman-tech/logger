@@ -4,9 +4,9 @@ namespace WebmanTech\Logger;
 
 use InvalidArgumentException;
 use Monolog\Utils;
-use support\Log;
 use Throwable;
 use WeakMap;
+use WebmanTech\CommonUtils\Log;
 use WebmanTech\Logger\Helper\ConfigHelper;
 
 class Logger
