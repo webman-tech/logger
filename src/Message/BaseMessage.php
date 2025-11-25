@@ -2,6 +2,8 @@
 
 namespace WebmanTech\Logger\Message;
 
+use WebmanTech\CommonUtils\Log;
+
 abstract class BaseMessage
 {
     protected bool $enable = true;
@@ -33,5 +35,10 @@ abstract class BaseMessage
     public function isEnabled(): bool
     {
         return $this->enable;
+    }
+
+    protected function log(string $level, string $message, array $context = []): void
+    {
+        Log::channel($this->channel)->log($level, $message, array_filter($context, fn($v) => $v !== null));
     }
 }

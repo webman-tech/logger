@@ -4,8 +4,7 @@ namespace WebmanTech\Logger\Message;
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Support\Str;
-use WebmanTech\CommonUtils\Log;
+use WebmanTech\Logger\Helper\StringHelper;
 
 /**
  * Eloquent SQL 日志
@@ -96,7 +95,7 @@ class EloquentSQLMessage extends BaseMessage
             $context['connectionName'] = $event->connectionName;
         }
 
-        Log::channel($this->channel)->log($logLevel, Str::limit($sql, $this->logMaxLength), $context);
+        $this->log($logLevel, StringHelper::limit($sql, $this->logMaxLength), $context);
     }
 
     protected function isSqlNotSelect(string $sql, QueryExecuted $event): bool
