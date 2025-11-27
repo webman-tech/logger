@@ -6,23 +6,20 @@ use Closure;
 use WebmanTech\CommonUtils\Middleware\BaseMiddleware;
 use WebmanTech\CommonUtils\Request;
 use WebmanTech\CommonUtils\Response;
-use WebmanTech\Logger\Logger;
 
-/**
- * 重置日志组件的状态
- */
-final class ResetLog extends BaseMiddleware
+final class RequestTraceMiddleware extends BaseMiddleware
 {
+    public const KEY_TRACE_ID = '__trace_id';
+
     /**
      * @inheritDoc
      */
     protected function processRequest(Request $request, Closure $handler): Response
     {
-        try {
-            return $handler($request);
-        } finally {
-            Logger::reset();
-            Logger::close();
-        }
+        $request->withCustomData([
+            self::KEY_TRACE_ID => uniqid('trace_'),
+        ]);
+
+        return $handler($request);
     }
 }

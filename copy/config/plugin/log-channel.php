@@ -1,11 +1,10 @@
 <?php
 
+use Monolog\Processor\PsrLogMessageProcessor;
 use WebmanTech\Logger\Formatter\ChannelFormatter;
 use WebmanTech\Logger\Formatter\ChannelMixedFormatter;
-use WebmanTech\Logger\Processors\RequestRouteProcessor;
-use WebmanTech\Logger\Processors\RequestUidProcessor;
-use WebmanTech\Logger\Processors\CurrentUserProcessor;
-use Monolog\Processor\PsrLogMessageProcessor;
+use WebmanTech\Logger\Mode;
+use WebmanTech\Logger\Processors;
 
 return [
     // channels
@@ -25,19 +24,17 @@ return [
     'processors' => function () {
         return [
             new PsrLogMessageProcessor('Y-m-d H:i:s', true),
-            new RequestRouteProcessor(),
-            new CurrentUserProcessor(function () {
-                // 返回当前用户id
-                return 0;
-            }),
-            new RequestUidProcessor(),
+            new Processors\RequestRouteProcessor(),
+            new Processors\RequestIpProcessor(),
+            new Processors\AuthUserIdProcessor(),
+            new Processors\RequestTraceProcessor(),
         ];
     },
     // 模式
     'modes' => [
         // 按照channel分目录记录
         'split' => [
-            'class' => WebmanTech\Logger\Mode\SplitMode::class,
+            'class' => Mode\SplitMode::class,
             'enable' => true,
             'except_channels' => [],
             'only_channels' => [],
@@ -48,7 +45,7 @@ return [
         ],
         // 将所有channel合并到一起记录
         'mix' => [
-            'class' => WebmanTech\Logger\Mode\MixMode::class,
+            'class' => Mode\MixMode::class,
             'enable' => false,
             'except_channels' => [],
             'only_channels' => [],
@@ -60,7 +57,7 @@ return [
         ],
         // 控制台输出
         'stdout' => [
-            'class' => WebmanTech\Logger\Mode\StdoutMode::class,
+            'class' => Mode\StdoutMode::class,
             'enable' => false,
             'except_channels' => [],
             'only_channels' => [],
@@ -70,7 +67,7 @@ return [
         ],
         // 输出到 redis
         'redis' => [
-            'class' => WebmanTech\Logger\Mode\RedisMode::class,
+            'class' => Mode\RedisMode::class,
             'enable' => false,
             'except_channels' => [],
             'only_channels' => [],

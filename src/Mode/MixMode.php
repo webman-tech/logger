@@ -3,6 +3,7 @@
 namespace WebmanTech\Logger\Mode;
 
 use Monolog\Handler\RotatingFileHandler;
+use function WebmanTech\CommonUtils\runtime_path;
 
 class MixMode extends BaseMode
 {
@@ -27,7 +28,7 @@ class MixMode extends BaseMode
         return [
             'class' => RotatingFileHandler::class,
             'constructor' => [
-                'filename' => runtime_path() . "/logs/{$name}/{$name}.log",
+                'filename' => runtime_path("logs/{$name}/{$name}.log"),
                 'maxFiles' => $this->config['max_files'],
                 'level' => $level,
             ],

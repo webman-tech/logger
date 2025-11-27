@@ -4,26 +4,23 @@ namespace WebmanTech\Logger\Processors;
 
 use Monolog\LogRecord;
 use Monolog\Processor\ProcessorInterface;
+use WebmanTech\CommonUtils\Request;
 
-class RequestRouteProcessor implements ProcessorInterface
+/**
+ * 请求 路由 处理器
+ */
+final class RequestRouteProcessor implements ProcessorInterface
 {
-    /**
-     * @inheritDoc
-     */
+    use ExtraGetSetTrait;
+
     public function __invoke(array|LogRecord $record): array|LogRecord
     {
-        $extra = $record['extra'] ?? [];
-
-        if (!isset($extra['route'])) {
-            $path = '/';
-            if ($request = request()) {
-                $path = $request->method() . ':' . $request->path();
+        return $this->withRecordExtra($record, 'route', function () {
+            $request = Request::getCurrent();
+            if ($request === null) {
+                return '';
             }
-            $extra['route'] = $path;
-        }
-
-        $record['extra'] = $extra;
-
-        return $record;
+            return sprintf('%s:%s', $request->getMethod(), $request->getPath());
+        });
     }
 }
