@@ -2,8 +2,6 @@
 
 namespace WebmanTech\Logger\Message;
 
-use DateTimeImmutable;
-use Symfony\Component\Clock\ClockAwareTrait;
 use Throwable;
 use WebmanTech\CommonUtils\Json;
 use WebmanTech\Logger\Helper\StringHelper;
@@ -14,8 +12,8 @@ use WebmanTech\Logger\Helper\StringHelper;
  */
 abstract class BaseHttpClientMessage extends BaseMessage
 {
-    use ClockAwareTrait;
     use TimeBasedMessageTrait;
+    use CostCalculateTrait;
 
     protected string $channel = 'httpClient';
 
@@ -42,7 +40,6 @@ abstract class BaseHttpClientMessage extends BaseMessage
      * @var TypeRequest|null
      */
     private ?array $request = null;
-    private ?DateTimeImmutable $start = null;
 
     /**
      * 标记一个请求开始
@@ -58,7 +55,7 @@ abstract class BaseHttpClientMessage extends BaseMessage
             'url' => $url,
             'options' => $options,
         ];
-        $this->start = $this->now();
+        $this->markStartTime();
     }
 
     /**
@@ -72,7 +69,7 @@ abstract class BaseHttpClientMessage extends BaseMessage
 
         $this->handle($this->request, $response, $exception);
         $this->request = null;
-        $this->start = null;
+        $this->markStartTime(clear: true);
     }
 
     /**
@@ -114,8 +111,7 @@ abstract class BaseHttpClientMessage extends BaseMessage
         }
 
         // 计算 cost
-        $costDiff = $this->now()->diff($this->start);
-        $cost = intval($costDiff->s * 1000 + $costDiff->f * 1000);
+        $cost = $this->getCostTimeMs();
 
         // 根据 cost 控制 level
         $logLevel = match (true) {

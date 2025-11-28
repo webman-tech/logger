@@ -62,7 +62,7 @@ class EloquentSQLMessage extends BaseMessage
         }
 
         $sql = $event->sql;
-        $sqlTime = $event->time;
+        $cost = intval(round($event->time));
 
         // 检查是否需要记录
         if (in_array($sql, $this->ignoreSql, true)) {
@@ -75,7 +75,7 @@ class EloquentSQLMessage extends BaseMessage
         }
 
         // 检查 logLevel 是否需要记录
-        $logLevel = $this->getLogLevelByTime($sqlTime);
+        $logLevel = $this->getLogLevelByTime($cost);
         if ($logLevel === null) {
             if (!($this->logNotSelect && $this->isSqlNotSelect($sql, $event))) {
                 return;
@@ -89,7 +89,7 @@ class EloquentSQLMessage extends BaseMessage
         }
 
         $context = [
-            'cost' => $sqlTime,
+            'cost' => $cost,
         ];
         if ($this->showConnectionName) {
             $context['connectionName'] = $event->connectionName;

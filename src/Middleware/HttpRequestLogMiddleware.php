@@ -10,9 +10,16 @@ use WebmanTech\CommonUtils\Response;
 use WebmanTech\Logger\Message\HttpRequestMessage;
 use function WebmanTech\CommonUtils\get_env;
 
-final class HttpRequestLogMiddleware extends BaseMiddleware
+/**
+ * Http 请求日志的中间件
+ */
+class HttpRequestLogMiddleware extends BaseMiddleware
 {
     private static ?HttpRequestMessage $message = null;
+
+    public function __construct(private readonly array $config = [])
+    {
+    }
 
     /**
      * @inheritDoc
@@ -20,10 +27,12 @@ final class HttpRequestLogMiddleware extends BaseMiddleware
     protected function processRequest(Request $request, Closure $handler): Response
     {
         if (self::$message === null) {
-            self::$message = new HttpRequestMessage(get_env('HTTP_REQUEST_LOG_CONFIG', []));
+            self::$message = new HttpRequestMessage(array_merge(
+                $this->config,
+                get_env('HTTP_REQUEST_LOG_CONFIG', []),
+            ));
         }
         $message = self::$message;
-        $response = Response::make();
         try {
             $message->markRequestStart($request);
             $response = $handler($request);
@@ -35,8 +44,8 @@ final class HttpRequestLogMiddleware extends BaseMiddleware
             $message->markResponseEnd($response);
             return $response;
         } catch (\Throwable $e) {
-            $message->markResponseEnd($response, $e);
-            return $response;
+            $message->markResponseEnd($response ?? null, $e);
+            throw $e;
         }
     }
 }

@@ -3,8 +3,6 @@
 namespace WebmanTech\Logger\Message;
 
 use Closure;
-use DateTimeImmutable;
-use Symfony\Component\Clock\ClockAwareTrait;
 use Throwable;
 use WebmanTech\CommonUtils\Request;
 use WebmanTech\CommonUtils\Response;
@@ -16,7 +14,7 @@ use WebmanTech\Logger\Helper\StringHelper;
 class HttpRequestMessage extends BaseMessage
 {
     use TimeBasedMessageTrait;
-    use ClockAwareTrait;
+    use CostCalculateTrait;
 
     protected string $channel = 'httpRequest';
 
@@ -60,7 +58,6 @@ class HttpRequestMessage extends BaseMessage
     }
 
     private mixed $request = null;
-    private ?DateTimeImmutable $start = null;
 
     public function markRequestStart(mixed $request): void
     {
@@ -69,7 +66,7 @@ class HttpRequestMessage extends BaseMessage
         }
 
         $this->request = $request;
-        $this->start = $this->now();
+        $this->markStartTime();
     }
 
     public function markResponseEnd(mixed $response, ?Throwable $exception = null): void
@@ -80,7 +77,7 @@ class HttpRequestMessage extends BaseMessage
 
         $this->handle(Request::from($this->request), $response ? Response::from($response) : null, $exception);
         $this->request = null;
-        $this->start = null;
+        $this->markStartTime(clear: true);
     }
 
     public function handle(Request $request, ?Response $response, ?Throwable $exception): void
@@ -90,8 +87,7 @@ class HttpRequestMessage extends BaseMessage
         }
 
         // 计算 cost
-        $costDiff = $this->now()->diff($this->start);
-        $cost = intval($costDiff->s * 1000 + $costDiff->f * 1000);
+        $cost = $this->getCostTimeMs();
 
         // 根据耗时获取 level
         $logLevel = $this->getLogLevelByTime($cost);
