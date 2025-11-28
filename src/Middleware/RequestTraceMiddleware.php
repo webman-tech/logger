@@ -9,7 +9,7 @@ use WebmanTech\CommonUtils\Response;
 
 final class RequestTraceMiddleware extends BaseMiddleware
 {
-    public const KEY_TRACE_ID = '__trace_id';
+    public const KEY_TRACE_ID = 'trace_id';
 
     /**
      * @inheritDoc
@@ -17,7 +17,7 @@ final class RequestTraceMiddleware extends BaseMiddleware
     protected function processRequest(Request $request, Closure $handler): Response
     {
         $request->withCustomData([
-            self::KEY_TRACE_ID => uniqid('trace_'),
+            self::KEY_TRACE_ID => uniqid('trace'),
         ]);
 
         return $handler($request);
