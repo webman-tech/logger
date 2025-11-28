@@ -101,107 +101,83 @@ Logger::app('用户 {name} 执行了 {action}', 'info', ['name' => '张三', 'ac
 
 ### Logger 主类
 
-[Logger](src/Logger.php) 类是主要入口，提供静态方法调用各日志通道：
+[Logger](src/Logger.php) 通过静态方法连接多个日志通道，负责：
 
-- `__callStatic()`: 魔术方法，用于调用各通道日志方法
-- `getLogChannelConfigs()`: 获取日志通道配置
-- `reset()`: 重置 Logger 实例
-- `close()`: 关闭 Logger 实例，释放资源
+- `__callStatic()`：转发到指定通道并自动登记被使用的 Logger；
+- `getLogChannelConfigs()`：交给 LogChannelManager 生成 `config/log.php` 的最终 handler;
+- `reset()/close()`：释放 handler、文件句柄等资源。
 
 ### LogChannelManager
 
-[LogChannelManager](src/LogChannelManager.php) 负责管理日志通道配置：
+[LogChannelManager](src/LogChannelManager.php) 把 channel/mode/processor/level 组合起来：
 
-- 构建适用于 config/log.php 的通道配置
-- 管理日志模式和处理器
-- 处理不同通道的日志级别
+- 遍历 channel，为每个 mode 生成 handler；
+- 根据 `levels.default/special` 决定级别；
+- `processors` 支持数组或回调，并强制校验必须实现 `ProcessorInterface`；
+- mode 会被缓存，避免重复实例化。
 
-### 模式(Mode)
+### 模式 (Mode)
 
-模式基本等同于 Monolog 的 Handler，是对 Handler 的二次封装。
+模式本质是 Monolog Handler 的包装，带有统一的 `enable/only_channels/except_channels/formatter` 配置。
 
-#### BaseMode 基础模式
+- [BaseMode](src/Mode/BaseMode.php)：实现通用开关与 formatter 管理；
+- [SplitMode](src/Mode/SplitMode.php)：每个 channel 拥有独立目录，按日期轮转；
+- [MixMode](src/Mode/MixMode.php)：所有 channel 写入 `channelMixed`，方便集中采集；
+- [StdoutMode](src/Mode/StdoutMode.php)：输出到 `php://stdout`，容器友好；
+- [RedisMode](src/Mode/RedisMode.php)：写入 Redis，方便异步处理。
 
-[BaseMode](src/Mode/BaseMode.php) 是所有模式的基类，提供通用配置和方法：
+### 格式化器 (Formatter)
 
-- 通用配置：enable、except_channels、only_channels、formatter
-- 检查通道是否启用
-- 获取格式化器
+日志行格式统一由 Formatter 控制：
 
-#### SplitMode 分离模式
+- [ChannelFormatter](src/Formatter/ChannelFormatter.php)：`[时间][traceId][前缀][等级][IP][UserId][Route]: 消息`；
+- [ChannelMixedFormatter](src/Formatter/ChannelMixedFormatter.php)：在 ChannelFormatter 基础上包含 `%channel%` 占位符，适合 MixMode。
 
-[SplitMode](src/Mode/SplitMode.php) 将不同的日志通道记录到不同的目录下：
+### 处理器 (Processor)
 
-```
-runtime/
-└── logs/
-    ├── app/
-    │   ├── app-2023-01-01.log
-    │   └── app-2023-01-02.log
-    └── sql/
-        ├── sql-2023-01-01.log
-        └── sql-2023-01-02.log
-```
+内置多个 Processor，均可自由组合：
 
-适用于开发和测试环境，便于按通道和日期排查错误。
+- [RequestIpProcessor](src/Processors/RequestIpProcessor.php)：注入当前请求 IP；
+- [RequestRouteProcessor](src/Processors/RequestRouteProcessor.php)：注入 `METHOD:/path`；
+- [RequestTraceProcessor](src/Processors/RequestTraceProcessor.php)：从 `RequestTraceMiddleware` 或 `X-Trace-Id` 读取 trace id；
+- [AuthUserIdProcessor](src/Processors/AuthUserIdProcessor.php)：从 Auth guard 获取用户 ID；
+- [CurrentUserProcessor](src/Processors/CurrentUserProcessor.php)：兼容旧版的 IP / userId 逻辑（已不推荐）；
+- [RequestUidProcessor](src/Processors/RequestUidProcessor.php)：配合旧版 `RequestUid` 中间件，为日志增加 `uid/traceId`（已废弃，建议迁移到 RequestTrace）。
 
-#### MixMode 混合模式
+## HTTP 日志工具
 
-[MixMode](src/Mode/MixMode.php) 将所有日志通道记录到同一个目录下：
+### HttpRequestMessage 与 HttpRequestLogMiddleware
 
-```
-runtime/
-└── logs/
-    └── channelMixed/
-        ├── channelMixed-2023-01-01.log
-        └── channelMixed-2023-01-02.log
-```
+- `HttpRequestMessage` 记录 Web 请求生命周期（耗时、方法、路径、Query、Body、响应/异常），并根据 `logMinTimeMS / warningTimeMS / errorTimeMS` 自动调整等级；
+- 支持 `skipPaths/skipRequest`、`logRequestQueryFn/logRequestBodyFn`、`appendLogRequestBodySensitive()`、`extraInfo`、`logRequestBodyLimitSize` 等钩子；
+- [HttpRequestLogMiddleware](src/Middleware/HttpRequestLogMiddleware.php) 即插即用，可通过 `HTTP_REQUEST_LOG_CONFIG` 环境变量覆盖配置：
 
-适用于将日志写入 ELK 等集中日志管理系统。
-
-#### StdoutMode 标准输出模式
-
-[StdoutMode](src/Mode/StdoutMode.php) 将日志输出到控制台，适用于 Docker 环境。
-
-#### RedisMode Redis 模式
-
-[RedisMode](src/Mode/RedisMode.php) 将日志写入 Redis，适用于需要进一步处理日志的场景。
-
-### 格式化器(Formatter)
-
-格式化器用于结构化日志格式，方便日志的筛查和查看。
-
-#### ChannelFormatter 通道格式化器
-
-[ChannelFormatter](src/Formatter/ChannelFormatter.php) 提供基本的通道格式：
-
-```
-[时间][请求唯一标识][日志级别][客户端IP][用户ID][路由]: 日志内容
+```php
+put_env('HTTP_REQUEST_LOG_CONFIG', [
+    'logMinTimeMS' => 100,
+    'skipPaths' => ['/\\/health\\//'],
+    'logRequestBodySensitive' => ['password', 'token'],
+    'extraInfo' => fn($request) => ['trace_id' => $request->getCustomData('trace_id')],
+]);
 ```
 
-#### ChannelMixedFormatter 混合格式化器
+### HttpClient 请求日志
 
-[ChannelMixedFormatter](src/Formatter/ChannelMixedFormatter.php) 在 ChannelFormatter 基础上增加通道名：
+- [BaseHttpClientMessage](src/Message/BaseHttpClientMessage.php) 内置时间分级、请求/响应体截断、`_logger` 单次请求覆盖、`extraInfo` 等能力；
+- [GuzzleHttpClientMessage](src/Message/GuzzleHttpClientMessage.php) 提供 middleware，可直接 push 到 `HandlerStack`；
+- [SymfonyHttpClientMessage](src/Message/SymfonyHttpClientMessage.php) 与 `MockHttpClient/MockResponse` 完全兼容，易于写测试。
 
-```
-[时间][请求唯一标识][通道名][日志级别][客户端IP][用户ID][路由]: 日志内容
-```
+### SQL 与其他消息
 
-### 处理器(Processors)
+- [EloquentSQLMessage](src/Message/EloquentSQLMessage.php) 可根据 SQL / 正则忽略语句，并按耗时输出 INFO/WARNING/ERROR；
+- 结合 HttpRequest/HttpClient 消息，可以在入口、下游以及数据库层面保持统一的日志格式。
 
-处理器用于在日志记录时向日志中添加额外信息。
+### 敏感数据 & 工具
 
-#### CurrentUserProcessor 当前用户处理器
-
-[CurrentUserProcessor](src/Processors/CurrentUserProcessor.php) 添加当前用户信息（IP地址和用户ID）。
-
-#### RequestRouteProcessor 请求路由处理器
-
-[RequestRouteProcessor](src/Processors/RequestRouteProcessor.php) 添加当前请求路由信息。
-
-#### RequestUidProcessor 请求UID处理器
-
-[RequestUidProcessor](src/Processors/RequestUidProcessor.php) 添加请求唯一标识，需要配合 RequestUid 中间件使用。
+- [StringHelper](src/Helper/StringHelper.php) 提供 `limit()` 截断字符串、`maskSensitiveFields()` 批量遮蔽 JSON/Form/纯文本敏感字段；
+- `RequestTraceMiddleware` 注入 trace id，配合 RequestTraceProcessor；
+- `ResetLog` 中间件在响应后执行 `Logger::reset()/close()`，防止 handler 被复用过久；
+- `RequestUid` 中间件仅用于旧版兼容，建议全面使用 RequestTrace 方案。
 
 ## 配置说明
 
