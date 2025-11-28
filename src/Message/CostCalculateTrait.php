@@ -28,6 +28,10 @@ trait CostCalculateTrait
      */
     private function getCostTimeMs(): int
     {
+        if ($this->start === null) {
+            return 0;
+        }
+
         $costDiff = $this->now()->diff($this->start);
         return intval($costDiff->s * 1000 + $costDiff->f * 1000);
     }

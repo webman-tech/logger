@@ -29,7 +29,7 @@ class HttpRequestLogMiddleware extends BaseMiddleware
         if (self::$message === null) {
             self::$message = new HttpRequestMessage(array_merge(
                 $this->config,
-                get_env('HTTP_REQUEST_LOG_CONFIG', []),
+                (array)get_env('HTTP_REQUEST_LOG_CONFIG', []),
             ));
         }
         $message = self::$message;

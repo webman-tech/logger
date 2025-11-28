@@ -136,7 +136,7 @@ class HttpRequestMessage extends BaseMessage
         }
         // 添加其他信息
         if ($value = $this->callClosure($this->extraInfo, $request, $response)) {
-            $context = array_merge($context, $value);
+            $context = array_merge($context, (array)$value);
         }
 
         $this->log($logLevel, $message, $context);
@@ -210,7 +210,7 @@ class HttpRequestMessage extends BaseMessage
         return StringHelper::maskSensitiveFields($content, $this->logRequestBodySensitive);
     }
 
-    private function callClosure(mixed $fn, ...$args): mixed
+    private function callClosure(mixed $fn, mixed ...$args): mixed
     {
         if ($fn instanceof \Closure) {
             return ($fn)(...$args);
