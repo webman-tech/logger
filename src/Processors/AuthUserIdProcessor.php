@@ -17,7 +17,12 @@ final class AuthUserIdProcessor implements ProcessorInterface
     public function __invoke(array|LogRecord $record): array|LogRecord
     {
         return $this->withRecordExtra($record, 'userId', function () {
-            return Auth::guard($this->guardName)->getId() ?? '0';
+            try {
+                $guard = Auth::guard($this->guardName);
+            } catch (\Throwable) {
+                $guard = null;
+            }
+            return $guard?->getId() ?? '';
         });
     }
 }
