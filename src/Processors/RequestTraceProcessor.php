@@ -24,7 +24,25 @@ final class RequestTraceProcessor implements ProcessorInterface
                     $value = $request->header('X-Trace-Id');
                 }
             }
+            if (!$value) {
+                $value = $this->getUid();
+            }
             return (string)$value;
         });
+    }
+
+    private ?string $uid = null;
+
+    public function reset(): void
+    {
+        $this->uid = null;
+    }
+
+    private function getUid(): string
+    {
+        if ($this->uid === null) {
+            $this->uid = uniqid('uid');
+        }
+        return $this->uid;
     }
 }
