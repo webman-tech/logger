@@ -100,7 +100,7 @@ class HttpRequestMessage extends BaseMessage
         if ($this->shouldSkipRequestPath($requestPath)) {
             return;
         }
-        if ($this->shouldSkipRequest($request)) {
+        if ($this->shouldSkipRequest($request, $response, $exception)) {
             return;
         }
 
@@ -153,13 +153,9 @@ class HttpRequestMessage extends BaseMessage
         return false;
     }
 
-    protected function shouldSkipRequest(Request $request): bool
+    protected function shouldSkipRequest(Request $request, ?Response $response, ?Throwable $exception): bool
     {
-        if ($this->skipRequest instanceof Closure) {
-            return ($this->skipRequest)($request);
-        }
-
-        return false;
+        return $this->callClosure($this->skipRequest, $request, $response, $exception) ?? false;
     }
 
     protected function getRequestQuery(Request $request): ?string

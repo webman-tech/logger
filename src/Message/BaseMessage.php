@@ -41,7 +41,8 @@ abstract class BaseMessage
 
     protected function log(string $level, string $message, array $context = []): void
     {
-        Log::channel($this->channel)->log($level, $message, array_filter($context, fn($v) => $v !== null));
+        $context = array_filter($context, fn($v) => $v !== null);
+        Log::channel($this->channel)->log($level, $message, $context);
 
         $this->callClosure($this->fnAfterLog, [
             'level' => $level,

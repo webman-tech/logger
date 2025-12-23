@@ -106,7 +106,7 @@ abstract class BaseHttpClientMessage extends BaseMessage
         }
 
         // 全局控制的是否需要跳过
-        if ($this->shouldSkipRequest($request)) {
+        if ($this->shouldSkipRequest($request, $exception)) {
             return;
         }
 
@@ -200,7 +200,7 @@ abstract class BaseHttpClientMessage extends BaseMessage
     /**
      * @param TypeRequest $request
      */
-    protected function shouldSkipRequest(array $request): bool
+    protected function shouldSkipRequest(array $request, ?Throwable $exception = null): bool
     {
         foreach ($this->skipUrls as $pattern) {
             if (preg_match($pattern, $request['url'])) {
@@ -208,7 +208,7 @@ abstract class BaseHttpClientMessage extends BaseMessage
             }
         }
 
-        if ($value = $this->callClosure($this->skipRequest, $request)) {
+        if ($value = $this->callClosure($this->skipRequest, $request, $exception)) {
             return $value;
         }
 
