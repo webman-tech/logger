@@ -87,9 +87,7 @@ class EloquentSQLMessage extends BaseMessage
         }
 
         // sql 绑定参数
-        if ($this->bindSQLBindings && $event->bindings) {
-            $sql = $event->toRawSql();
-        }
+        $sql = $this->getBindSQL($event);
 
         $context = [
             'cost' => $cost,
@@ -113,6 +111,29 @@ class EloquentSQLMessage extends BaseMessage
         }
 
         return !!preg_match("/^\s*(update|delete|insert|replace|create|alter|drop|truncate)\s*/i", $sql);
+    }
+
+    private ?bool $isEventHasToRawSql = null;
+
+    protected function getBindSQL(QueryExecuted $event): string
+    {
+        if (!$this->bindSQLBindings || !$event->bindings) {
+            return $event->sql;
+        }
+
+        // 为了更高的性能，缓存这个值，以防止在多次调用时一直检查 exist
+        if ($this->isEventHasToRawSql === null) {
+            $this->isEventHasToRawSql = method_exists($event, 'toRawSql');
+        }
+        if ($this->isEventHasToRawSql) {
+            return $event->toRawSql();
+        }
+
+        $sql = $event->sql;
+        foreach ($event->bindings as $v) {
+            $sql = preg_replace('/\\?/', "'" . (is_string($v) ? addslashes($v) : $v) . "'", (string)$sql, 1);
+        }
+        return $sql;
     }
 
     private function callClosure(mixed $fn, mixed ...$args): mixed
