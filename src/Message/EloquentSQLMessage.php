@@ -2,6 +2,7 @@
 
 namespace WebmanTech\Logger\Message;
 
+use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Events\QueryExecuted;
 use WebmanTech\Logger\Helper\StringHelper;
@@ -21,10 +22,12 @@ class EloquentSQLMessage extends BaseMessage
     protected array $ignoreSqlPattern = []; // 正则忽略的 sql
 
     protected bool $logNotSelect = true; // 记录所有非 select 语句
-    protected ?\Closure $checkIsSqlNotSelect = null; // 判断 SQL 是否不是 select
+    protected ?Closure $checkIsSqlNotSelect = null; // 判断 SQL 是否不是 select
     protected bool $bindSQLBindings = true; // 是否绑定 SQL 参数
     protected bool $showConnectionName = false; // 是否显示连接名称
     protected int $logMaxLength = 1000; // 日志 SQL 长度限制
+    /** @phpstan-ignore-next-line */
+    protected ?Closure $extraInfo = null; // 其他信息
 
     final public function appendIgnoreSql(string|array $sql): static
     {
@@ -94,16 +97,29 @@ class EloquentSQLMessage extends BaseMessage
         if ($this->showConnectionName) {
             $context['connectionName'] = $event->connectionName;
         }
+        // 添加其他信息
+        if ($value = $this->callClosure($this->extraInfo, $event)) {
+            $context = array_merge($context, (array)$value);
+        }
 
         $this->log($logLevel, StringHelper::limit($sql, $this->logMaxLength), $context);
     }
 
     protected function isSqlNotSelect(string $sql, QueryExecuted $event): bool
     {
-        if ($this->checkIsSqlNotSelect instanceof \Closure) {
-            return ($this->checkIsSqlNotSelect)($sql, $event);
+        $value = $this->callClosure($this->checkIsSqlNotSelect, $sql, $event);
+        if ($value !== null) {
+            return $value;
         }
 
         return !!preg_match("/^\s*(update|delete|insert|replace|create|alter|drop|truncate)\s*/i", $sql);
+    }
+
+    private function callClosure(mixed $fn, mixed ...$args): mixed
+    {
+        if ($fn instanceof \Closure) {
+            return ($fn)(...$args);
+        }
+        return null;
     }
 }

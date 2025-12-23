@@ -5,6 +5,9 @@ namespace WebmanTech\Logger\Message;
 use DateTimeImmutable;
 use Symfony\Component\Clock\ClockAwareTrait;
 
+/**
+ * @internal
+ */
 trait CostCalculateTrait
 {
     use ClockAwareTrait;
