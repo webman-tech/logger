@@ -2,12 +2,14 @@
 
 namespace WebmanTech\Logger\Message;
 
+use Closure;
 use WebmanTech\CommonUtils\Log;
 
 abstract class BaseMessage
 {
     protected bool $enable = true;
     protected string $channel = 'default';
+    protected ?Closure $fnAfterLog = null; // 日志后置处理，请尽可能自行处理好异常的捕获，以防止由于记日志引起的 Exception
 
     final public function __construct(array $config = [])
     {
@@ -40,5 +42,19 @@ abstract class BaseMessage
     protected function log(string $level, string $message, array $context = []): void
     {
         Log::channel($this->channel)->log($level, $message, array_filter($context, fn($v) => $v !== null));
+
+        $this->callClosure($this->fnAfterLog, [
+            'level' => $level,
+            'message' => $message,
+            'context' => $context,
+        ]);
+    }
+
+    protected function callClosure(mixed $fn, mixed ...$args): mixed
+    {
+        if ($fn instanceof \Closure) {
+            return ($fn)(...$args);
+        }
+        return null;
     }
 }

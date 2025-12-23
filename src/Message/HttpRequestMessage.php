@@ -209,12 +209,4 @@ class HttpRequestMessage extends BaseMessage
         }
         return StringHelper::maskSensitiveFields($content, $this->logRequestBodySensitive);
     }
-
-    private function callClosure(mixed $fn, mixed ...$args): mixed
-    {
-        if ($fn instanceof \Closure) {
-            return ($fn)(...$args);
-        }
-        return null;
-    }
 }

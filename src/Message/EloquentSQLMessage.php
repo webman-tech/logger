@@ -135,12 +135,4 @@ class EloquentSQLMessage extends BaseMessage
         }
         return $sql;
     }
-
-    private function callClosure(mixed $fn, mixed ...$args): mixed
-    {
-        if ($fn instanceof \Closure) {
-            return ($fn)(...$args);
-        }
-        return null;
-    }
 }

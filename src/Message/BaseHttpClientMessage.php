@@ -261,14 +261,6 @@ abstract class BaseHttpClientMessage extends BaseMessage
         return $options;
     }
 
-    private function callClosure(mixed $fn, mixed ...$args): mixed
-    {
-        if ($fn instanceof \Closure) {
-            return ($fn)(...$args);
-        }
-        return null;
-    }
-
     abstract protected function getResponseStatus(mixed $response): int;
 
     abstract protected function getResponseContent(mixed $response, int $limitLength): string;
