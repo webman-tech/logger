@@ -39,7 +39,7 @@ abstract class BaseHttpClientMessage extends BaseMessage
     /**
      * @var TypeRequest|null
      */
-    private ?array $request = null;
+    protected ?array $request = null;
 
     /**
      * 标记一个请求开始
@@ -97,8 +97,8 @@ abstract class BaseHttpClientMessage extends BaseMessage
             'logRequestBodyLimitSize' => $this->logRequestBodyLimitSize,
             'logResponseBody' => $this->logResponseBody,
             'logResponseBodyLimitSize' => $this->logResponseBodyLimitSize,
-        ], $requestOptions['_logger'] ?? []);
-        unset($requestOptions['_logger']);
+        ], $requestOptions['_logger'] ?? $requestOptions['extra']['_logger'] ?? []);
+        unset($requestOptions['_logger'], $requestOptions['extra']['_logger']); // symfony 下不能在 options 中添加自定义参数，因此需要放到 extra 下
 
         // 单请求定义的跳过
         if ($requestBasedConfig['skip']) {
