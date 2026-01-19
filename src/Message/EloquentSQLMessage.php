@@ -123,6 +123,7 @@ class EloquentSQLMessage extends BaseMessage
 
         // 为了更高的性能，缓存这个值，以防止在多次调用时一直检查 exist
         if ($this->isEventHasToRawSql === null) {
+            /** @phpstan-ignore-next-line */
             $this->isEventHasToRawSql = method_exists($event, 'toRawSql');
         }
         if ($this->isEventHasToRawSql) {
@@ -131,7 +132,8 @@ class EloquentSQLMessage extends BaseMessage
 
         $sql = $event->sql;
         foreach ($event->bindings as $v) {
-            $sql = preg_replace('/\\?/', "'" . (is_string($v) ? addslashes($v) : $v) . "'", (string)$sql, 1);
+            /** @var string $sql */
+            $sql = preg_replace('/\\?/', "'" . (is_string($v) ? addslashes($v) : $v) . "'", $sql, 1);
         }
         return $sql;
     }
