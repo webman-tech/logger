@@ -247,7 +247,7 @@ abstract class BaseHttpClientMessage extends BaseMessage
             }
             if (is_array($value)) {
                 $value = array_map(function ($item) {
-                    return (!is_scalar($item) && !is_array($item))
+                    return (!is_null($item) && !is_scalar($item) && !is_array($item))
                         ? ('[' . gettype($item) . ']')
                         : $item;
                 }, $value);
