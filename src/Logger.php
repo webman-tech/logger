@@ -34,8 +34,27 @@ class Logger
 
     public static function __callStatic(string $name, array $arguments): void
     {
-        $level = $arguments[1] ?? static::$defaultLevel;
-        $context = $arguments[2] ?? [];
+        $level = static::$defaultLevel;
+        $context = [];
+
+        // 从参数中提取 level 和 context（支持位置参数和命名参数混合使用）
+        foreach ($arguments as $key => $value) {
+            if (is_int($key)) {
+                // 位置参数
+                if ($key === 1) {
+                    $level = $value;
+                } elseif ($key === 2) {
+                    $context = $value;
+                }
+            } elseif (is_string($key)) {
+                // 命名参数
+                if ($key === 'level' || $key === 'type') {
+                    $level = $value;
+                } elseif ($key === 'context') {
+                    $context = $value;
+                }
+            }
+        }
 
         if (self::$loggerInstances === null) {
             self::$loggerInstances = new WeakMap();
