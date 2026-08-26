@@ -1,6 +1,6 @@
 ---
 name: webman-tech-logger-best-practices
-description: webman-tech/logger 最佳实践。使用场景：用户配置多 channel 日志管理时，给出明确的推荐写法。
+description: 多通道日志管理。触发：Channel 配置、Logger Facade、Processor 上下文、Message 结构化日志、中间件集成。
 ---
 
 # webman-tech/logger 最佳实践
@@ -103,6 +103,8 @@ return [
 ---
 
 ## 使用方式
+
+使用方法名即 channel 名的方式：
 
 ```php
 use support\facade\Logger;
