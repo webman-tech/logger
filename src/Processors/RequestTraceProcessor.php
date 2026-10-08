@@ -19,10 +19,14 @@ final class RequestTraceProcessor implements ProcessorInterface
         return $this->withRecordExtra($record, 'traceId', function () {
             $value = '';
             if ($request = Request::getCurrent()) {
-                $value = $request->getCustomData(RequestTraceMiddleware::KEY_TRACE_ID);
-                if (!$value) {
-                    $value = $request->header('X-Trace-Id');
-                }
+                // 同一请求内 customData/header 恒定，按请求对象缓存避免逐条日志重复读取
+                $value = ProcessorCache::remember($request->getRaw(), 'traceId', function () use ($request) {
+                    $traceId = $request->getCustomData(RequestTraceMiddleware::KEY_TRACE_ID);
+                    if (!$traceId) {
+                        $traceId = $request->header('X-Trace-Id');
+                    }
+                    return $traceId ?? '';
+                });
             }
             if (!$value) {
                 $value = $this->getUid();

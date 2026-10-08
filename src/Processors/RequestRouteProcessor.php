@@ -20,7 +20,8 @@ final class RequestRouteProcessor implements ProcessorInterface
             if ($request === null) {
                 return '';
             }
-            return sprintf('%s:%s', $request->getMethod(), $request->getPath());
+            // 同一请求内 method/path 恒定，按请求对象缓存避免逐条日志重复计算
+            return ProcessorCache::remember($request->getRaw(), 'route', fn(): string => sprintf('%s:%s', $request->getMethod(), $request->getPath()));
         });
     }
 }
